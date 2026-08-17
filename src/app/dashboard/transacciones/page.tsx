@@ -1,0 +1,359 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase-browser"
+import { formatCurrency, formatDate, getCurrentMonth } from "@/lib/utils"
+import { Plus, Pencil, Trash2, X, Filter } from "lucide-react"
+
+interface Categoria {
+  id: string
+  nombre: string
+  tipo: string
+  color: string
+}
+
+interface Transaccion {
+  id: string
+  monto: number
+  descripcion: string
+  fecha: string
+  tipo: string
+  categoria_id: string
+  categorias: Categoria | null
+}
+
+export default function TransaccionesPage() {
+  const [transacciones, setTransacciones] = useState<Transaccion[]>([])
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editando, setEditando] = useState<Transaccion | null>(null)
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos")
+  const [filtroMes, setFiltroMes] = useState(getCurrentMonth().mes)
+  const [filtroAnio, setFiltroAnio] = useState(getCurrentMonth().anio)
+
+  // Form state
+  const [tipo, setTipo] = useState("gasto")
+  const [monto, setMonto] = useState("")
+  const [descripcion, setDescripcion] = useState("")
+  const [categoriaId, setCategoriaId] = useState("")
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0])
+
+  useEffect(() => {
+    fetchData()
+  }, [filtroMes, filtroAnio])
+
+  const fetchData = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: cats } = await supabase
+      .from("categorias")
+      .select("*")
+      .eq("usuario_id", user.id)
+      .order("nombre")
+
+    setCategorias(cats || [])
+
+    const startDate = `${filtroAnio}-${String(filtroMes).padStart(2, "0")}-01`
+    const endDate = `${filtroAnio}-${String(filtroMes + 1 > 12 ? 1 : filtroMes + 1).padStart(2, "0")}-01`
+
+    const { data: trans } = await supabase
+      .from("transacciones")
+      .select("*, categorias(id, nombre, tipo, color)")
+      .eq("usuario_id", user.id)
+      .gte("fecha", startDate)
+      .lt("fecha", endDate)
+      .order("fecha", { ascending: false })
+
+    setTransacciones((trans as Transaccion[]) || [])
+    setLoading(false)
+  }
+
+  const categoriasFiltradas = categorias.filter((c) => c.tipo === tipo)
+
+  const filteredTransacciones = filtroTipo === "todos"
+    ? transacciones
+    : transacciones.filter((t) => t.tipo === filtroTipo)
+
+  const totalIngresos = filteredTransacciones.filter((t) => t.tipo === "ingreso").reduce((s, t) => s + Number(t.monto), 0)
+  const totalGastos = filteredTransacciones.filter((t) => t.tipo === "gasto").reduce((s, t) => s + Number(t.monto), 0)
+
+  const openModal = (trans?: Transaccion) => {
+    if (trans) {
+      setEditando(trans)
+      setTipo(trans.tipo)
+      setMonto(String(trans.monto))
+      setDescripcion(trans.descripcion || "")
+      setCategoriaId(trans.categoria_id || "")
+      setFecha(trans.fecha)
+    } else {
+      setEditando(null)
+      setTipo("gasto")
+      setMonto("")
+      setDescripcion("")
+      setCategoriaId("")
+      setFecha(new Date().toISOString().split("T")[0])
+    }
+    setShowModal(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const data = {
+      usuario_id: user.id,
+      tipo,
+      monto: Number(monto),
+      descripcion,
+      categoria_id: categoriaId || null,
+      fecha,
+    }
+
+    if (editando) {
+      await supabase.from("transacciones").update(data).eq("id", editando.id)
+    } else {
+      await supabase.from("transacciones").insert(data)
+    }
+
+    setShowModal(false)
+    fetchData()
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Eliminar esta transacción?")) return
+    const supabase = createClient()
+    await supabase.from("transacciones").delete().eq("id", id)
+    fetchData()
+  }
+
+  const months = [
+    "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+    "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+  ]
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Transacciones</h1>
+          <p className="text-gray-500 text-sm">Gestiona tus ingresos y gastos</p>
+        </div>
+        <button
+          onClick={() => openModal()}
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Nueva Transacción
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-400" />
+          <select
+            value={filtroMes}
+            onChange={(e) => setFiltroMes(Number(e.target.value))}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+          >
+            {months.map((m, i) => (
+              <option key={i} value={i + 1}>{m}</option>
+            ))}
+          </select>
+          <select
+            value={filtroAnio}
+            onChange={(e) => setFiltroAnio(Number(e.target.value))}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+          >
+            {[2024, 2025, 2026, 2027].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          {["todos", "ingreso", "gasto"].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFiltroTipo(f)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                filtroTipo === f
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {f === "todos" ? "Todos" : f === "ingreso" ? "Ingresos" : "Gastos"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <p className="text-xs text-gray-500 mb-1">Ingresos</p>
+          <p className="text-lg font-bold text-emerald-600">{formatCurrency(totalIngresos)}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <p className="text-xs text-gray-500 mb-1">Gastos</p>
+          <p className="text-lg font-bold text-red-600">{formatCurrency(totalGastos)}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <p className="text-xs text-gray-500 mb-1">Balance</p>
+          <p className={`text-lg font-bold ${totalIngresos - totalGastos >= 0 ? "text-indigo-600" : "text-red-600"}`}>
+            {formatCurrency(totalIngresos - totalGastos)}
+          </p>
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {filteredTransacciones.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">
+            <p>No hay transacciones para este período</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {filteredTransacciones.map((t) => (
+              <div key={t.id} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: t.categorias?.color || "#94a3b8" }}
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {t.descripcion || t.categorias?.nombre || "Sin descripción"}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {t.categorias?.nombre} · {formatDate(t.fecha)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
+                    {t.tipo === "ingreso" ? "+" : "-"}{formatCurrency(Number(t.monto))}
+                  </p>
+                  <button onClick={() => openModal(t)} className="text-gray-400 hover:text-indigo-600">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-600">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editando ? "Editar Transacción" : "Nueva Transacción"}
+              </h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Tipo */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => { setTipo("gasto"); setCategoriaId("") }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    tipo === "gasto" ? "bg-red-500 text-white" : "text-gray-500"
+                  }`}
+                >
+                  Gasto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTipo("ingreso"); setCategoriaId("") }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    tipo === "ingreso" ? "bg-emerald-500 text-white" : "text-gray-500"
+                  }`}
+                >
+                  Ingreso
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={monto}
+                  onChange={(e) => setMonto(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <select
+                  value={categoriaId}
+                  onChange={(e) => setCategoriaId(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">Sin categoría</option>
+                  {categoriasFiltradas.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <input
+                  type="text"
+                  value={descripcion}
+                  onChange={(e) => setDescripcion(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  placeholder="Ej: Compra en supermercado"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                <input
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+              >
+                {editando ? "Guardar Cambios" : "Agregar Transacción"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

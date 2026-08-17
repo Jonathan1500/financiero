@@ -1,0 +1,39 @@
+# =============================================
+# VARIABLES DE ENTORNO - FINANZAS PERSONALES
+# Copia esto a .env.local (desarrollo) y a Vercel (producción)
+# =============================================
+
+# Supabase - Obtén en: Settings → API
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
+
+# NextAuth
+NEXTAUTH_SECRET=5kiR2L35BB3W56caYl4jrlkJKDlTrUpBMM9gqhFgus0=
+NEXTAUTH_URL=http://localhost:3000
+
+# =============================================
+# PASOS PARA OBTENER LOS VALORES REALES:
+# =============================================
+
+# 1. SUPABASE:
+#    - Ve a https://supabase.com/dashboard
+#    - Crea proyecto "finanzas-personales"
+#    - Settings → API → Copia:
+#         Project URL        → NEXT_PUBLIC_SUPABASE_URL
+#         anon public key    → NEXT_PUBLIC_SUPABASE_ANON_KEY
+#    - SQL Editor → Ejecuta supabase-schema.sql
+
+# 2. NEXTAUTH_SECRET:
+#    Ya generado arriba: 5kiR2L35BB3W56caYl4jrlkJKDlTrUpBMM9gqhFgus0=
+
+# 3. NEXTAUTH_URL:
+#    Desarrollo: http://localhost:3000
+#    Producción: https://tu-proyecto.vercel.app  (actualiza tras primer deploy)
+
+# =============================================
+# DESPUÉS DEL PRIMER DEPLOY EN VERCEL:
+# =============================================
+# 1. Copia la URL que te da Vercel (ej: https://financiero-xyz.vercel.app)
+# 2. En Vercel → Settings → Environment Variables
+# 3. Actualiza NEXTAUTH_URL = https://financiero-xyz.vercel.app
+# 4. Redeploy
