@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, formatDate, getCurrentMonth } from "@/lib/utils"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { Plus, Pencil, Trash2, X, Filter } from "lucide-react"
 
 interface Categoria {
@@ -23,6 +24,7 @@ interface Transaccion {
 }
 
 export default function TransaccionesPage() {
+  const { preferences } = useUserPreferences()
   const [transacciones, setTransacciones] = useState<Transaccion[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,6 +40,8 @@ export default function TransaccionesPage() {
   const [descripcion, setDescripcion] = useState("")
   const [categoriaId, setCategoriaId] = useState("")
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0])
+
+  const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   useEffect(() => {
     fetchData()
@@ -204,16 +208,16 @@ export default function TransaccionesPage() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(totalIngresos)}</p>
+          <p className="text-lg font-bold text-emerald-600">{fmt(totalIngresos)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Gastos</p>
-          <p className="text-lg font-bold text-red-600">{formatCurrency(totalGastos)}</p>
+          <p className="text-lg font-bold text-red-600">{fmt(totalGastos)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Balance</p>
           <p className={`text-lg font-bold ${totalIngresos - totalGastos >= 0 ? "text-indigo-600" : "text-red-600"}`}>
-            {formatCurrency(totalIngresos - totalGastos)}
+            {fmt(totalIngresos - totalGastos)}
           </p>
         </div>
       </div>
@@ -244,7 +248,7 @@ export default function TransaccionesPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
-                    {t.tipo === "ingreso" ? "+" : "-"}{formatCurrency(Number(t.monto))}
+                    {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
                   </p>
                   <button onClick={() => openModal(t)} className="text-gray-400 hover:text-indigo-600">
                     <Pencil className="w-4 h-4" />

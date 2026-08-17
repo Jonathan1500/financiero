@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, getCurrentMonth } from "@/lib/utils"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
-import type { TooltipProps } from "recharts"
 import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent"
 
 interface MonthlyData {
@@ -27,6 +27,7 @@ interface TransaccionRaw {
 }
 
 export default function ReportesPage() {
+  const { preferences } = useUserPreferences()
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [categoryData, setCategoryData] = useState<CategoryData[]>([])
   const [ingresosMensuales, setIngresosMensuales] = useState<CategoryData[]>([])
@@ -126,8 +127,10 @@ export default function ReportesPage() {
   }
 
   const COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ef4444", "#14b8a6"]
+  const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
-  const formatTooltip = (value: ValueType | undefined, name: NameType | undefined): React.ReactNode => value !== undefined ? formatCurrency(Number(value)) : ""
+  const formatTooltip = (value: ValueType | undefined, name: NameType | undefined): React.ReactNode =>
+    value !== undefined ? fmt(Number(value)) : ""
 
   if (loading) {
     return (
@@ -155,26 +158,28 @@ export default function ReportesPage() {
         </select>
       </div>
 
+      {/* Resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl p-5 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Total Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(resumen.totalIngresos)}</p>
+          <p className="text-lg font-bold text-emerald-600">{fmt(resumen.totalIngresos)}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Total Gastos</p>
-          <p className="text-lg font-bold text-red-600">{formatCurrency(resumen.totalGastos)}</p>
+          <p className="text-lg font-bold text-red-600">{fmt(resumen.totalGastos)}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Promedio Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(resumen.promedioIngresos)}</p>
+          <p className="text-lg font-bold text-emerald-600">{fmt(resumen.promedioIngresos)}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Promedio Gastos</p>
-          <p className="text-lg font-bold text-red-600">{formatCurrency(resumen.promedioGastos)}</p>
+          <p className="text-lg font-bold text-red-600">{fmt(resumen.promedioGastos)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Gráfica de barras - Ingresos vs Gastos */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">Ingresos vs Gastos Mensuales</h2>
           {monthlyData.some((m) => m.ingresos > 0 || m.gastos > 0) ? (
@@ -196,6 +201,7 @@ export default function ReportesPage() {
           )}
         </div>
 
+        {/* Gráfica de pastel - Gastos por categoría */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">Gastos por Categoría</h2>
           {categoryData.length > 0 ? (
@@ -228,6 +234,7 @@ export default function ReportesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Tabla de gastos por categoría */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">Detalle Gastos por Categoría</h2>
           {categoryData.length > 0 ? (
@@ -241,7 +248,7 @@ export default function ReportesPage() {
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
                         <span className="text-gray-700">{cat.nombre}</span>
                       </div>
-                      <span className="font-medium text-gray-900">{formatCurrency(cat.total)}</span>
+                      <span className="font-medium text-gray-900">{fmt(cat.total)}</span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${porcentaje}%`, backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
@@ -255,6 +262,7 @@ export default function ReportesPage() {
           )}
         </div>
 
+        {/* Detalle ingresos por categoría */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">Detalle Ingresos por Categoría</h2>
           {ingresosMensuales.length > 0 ? (
@@ -268,7 +276,7 @@ export default function ReportesPage() {
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
                         <span className="text-gray-700">{cat.nombre}</span>
                       </div>
-                      <span className="font-medium text-gray-900">{formatCurrency(cat.total)}</span>
+                      <span className="font-medium text-gray-900">{fmt(cat.total)}</span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${porcentaje}%`, backgroundColor: cat.color || COLORS[i % COLORS.length] }} />

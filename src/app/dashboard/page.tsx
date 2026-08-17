@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, getCurrentMonth, getMonthName } from "@/lib/utils"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { TrendingUp, TrendingDown, Wallet, Target } from "lucide-react"
 
 interface Stats {
@@ -25,6 +26,7 @@ interface RecentTransaction {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const { preferences } = useUserPreferences()
   const [stats, setStats] = useState<Stats>({ totalIngresos: 0, totalGastos: 0, balance: 0, totalMetas: 0, metasCompletadas: 0 })
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +41,6 @@ export default function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Transacciones del mes actual
     const startDate = `${anio}-${String(mes).padStart(2, "0")}-01`
     const endDate = `${anio}-${String(mes + 1 > 12 ? 1 : mes + 1).padStart(2, "0")}-01`
 
@@ -54,7 +55,6 @@ export default function DashboardPage() {
     const ingresos = transacciones?.filter((t) => t.tipo === "ingreso").reduce((sum, t) => sum + Number(t.monto), 0) || 0
     const gastos = transacciones?.filter((t) => t.tipo === "gasto").reduce((sum, t) => sum + Number(t.monto), 0) || 0
 
-    // Metas
     const { data: metas } = await supabase
       .from("metas_ahorro")
       .select("monto_objetivo, monto_actual")
@@ -82,6 +82,8 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   const statCards = [
     { label: "Ingresos", value: stats.totalIngresos, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -112,7 +114,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-500">{card.label}</p>
                 <p className={`text-lg font-bold ${card.color}`}>
-                  {typeof card.value === "number" ? formatCurrency(card.value) : card.value}
+                  {typeof card.value === "number" ? fmt(card.value) : card.value}
                 </p>
                 {card.extra && (
                   <p className="text-xs text-gray-400">{card.extra}</p>
@@ -150,7 +152,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
-                  {t.tipo === "ingreso" ? "+" : "-"}{formatCurrency(Number(t.monto))}
+                  {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
                 </p>
               </div>
             ))}

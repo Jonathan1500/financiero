@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
+import { useState } from "react"
 import {
   LayoutDashboard,
   ArrowUpDown,
@@ -13,8 +14,9 @@ import {
   DollarSign,
   Menu,
   X,
+  Settings,
 } from "lucide-react"
-import { useState } from "react"
+import SettingsModal from "@/components/settings-modal"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const { data: session } = useSession()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <div className="min-h-screen flex">
@@ -80,6 +83,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
               )
             })}
+            {/* Settings in sidebar */}
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors w-full"
+            >
+              <Settings className="w-5 h-5 text-gray-400" />
+              Configuración
+            </button>
           </nav>
 
           {/* User */}
@@ -111,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar mobile */}
-        <header className="lg:hidden flex items-center gap-4 px-4 py-3 bg-white border-b border-gray-200">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
           <button
             onClick={() => setSidebarOpen(true)}
             className="text-gray-600 hover:text-gray-900"
@@ -122,10 +133,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DollarSign className="w-5 h-5 text-indigo-600" />
             <span className="font-bold text-gray-900">Finanzas</span>
           </div>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="text-gray-600 hover:text-gray-900 p-2"
+            title="Configuración"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </header>
 
         <main className="flex-1 p-6">{children}</main>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }

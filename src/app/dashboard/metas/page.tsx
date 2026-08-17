@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { Plus, Pencil, Trash2, X, Target, ArrowUp, ArrowDown } from "lucide-react"
 
 interface Meta {
@@ -15,6 +16,7 @@ interface Meta {
 }
 
 export default function MetasPage() {
+  const { preferences } = useUserPreferences()
   const [metas, setMetas] = useState<Meta[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -28,6 +30,8 @@ export default function MetasPage() {
   const [montoObjetivo, setMontoObjetivo] = useState("")
   const [montoActual, setMontoActual] = useState("")
   const [fechaLimite, setFechaLimite] = useState("")
+
+  const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   useEffect(() => {
     fetchMetas()
@@ -159,11 +163,11 @@ export default function MetasPage() {
           <div className="flex justify-between items-end">
             <div>
               <p className="text-sm text-white/80">Ahorrado</p>
-              <p className="text-2xl font-bold">{formatCurrency(totalAhorrado)}</p>
+              <p className="text-2xl font-bold">{fmt(totalAhorrado)}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-white/80">Objetivo</p>
-              <p className="text-lg font-semibold">{formatCurrency(totalObjetivo)}</p>
+              <p className="text-lg font-semibold">{fmt(totalObjetivo)}</p>
             </div>
           </div>
           <div className="w-full h-2 bg-white/20 rounded-full mt-4 overflow-hidden">
@@ -219,7 +223,7 @@ export default function MetasPage() {
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-500">Ahorrado</span>
                   <span className="font-semibold text-gray-900">
-                    {formatCurrency(Number(meta.monto_actual))} / {formatCurrency(Number(meta.monto_objetivo))}
+                    {fmt(Number(meta.monto_actual))} / {fmt(Number(meta.monto_objetivo))}
                   </span>
                 </div>
 
@@ -333,7 +337,7 @@ export default function MetasPage() {
             </div>
             <form onSubmit={handleDeposito} className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
-                Actual: {formatCurrency(Number(metaSeleccionada.monto_actual))}
+                Actual: {fmt(Number(metaSeleccionada.monto_actual))}
               </p>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>

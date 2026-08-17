@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, getCurrentMonth, getMonthName } from "@/lib/utils"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { Plus, Pencil, Trash2, X, AlertTriangle } from "lucide-react"
 
 interface Categoria {
@@ -27,6 +28,7 @@ interface GastoCategoria {
 }
 
 export default function PresupuestosPage() {
+  const { preferences } = useUserPreferences()
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [gastos, setGastos] = useState<GastoCategoria[]>([])
@@ -37,6 +39,8 @@ export default function PresupuestosPage() {
 
   const [categoriaId, setCategoriaId] = useState("")
   const [montoLimite, setMontoLimite] = useState("")
+
+  const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   useEffect(() => {
     fetchData()
@@ -65,7 +69,6 @@ export default function PresupuestosPage() {
 
     setPresupuestos((pres as Presupuesto[]) || [])
 
-    // Gastos del mes
     const startDate = `${anio}-${String(mes).padStart(2, "0")}-01`
     const endDate = `${anio}-${String(mes + 1 > 12 ? 1 : mes + 1).padStart(2, "0")}-01`
 
@@ -199,7 +202,7 @@ export default function PresupuestosPage() {
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-500">Gastado</span>
                   <span className={`font-semibold ${excedido ? "text-red-600" : "text-gray-900"}`}>
-                    {formatCurrency(gasto)} / {formatCurrency(limite)}
+                    {fmt(gasto)} / {fmt(limite)}
                   </span>
                 </div>
 
@@ -213,7 +216,7 @@ export default function PresupuestosPage() {
                 </div>
 
                 <p className="text-xs text-gray-400 mt-2">
-                  {porcentaje.toFixed(0)}% utilizado · {formatCurrency(limite - gasto)} restante
+                  {porcentaje.toFixed(0)}% utilizado · {fmt(limite - gasto)} restante
                 </p>
               </div>
             )
