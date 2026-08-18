@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, getCurrentMonth, getMonthName } from "@/lib/utils"
 import { useUserPreferences } from "@/hooks/useUserPreferences"
-import { TrendingUp, TrendingDown, Wallet, Target } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet, Target, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
 
@@ -80,7 +81,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="w-10 h-10 border-4 border-wealth/20 border-t-wealth rounded-full animate-spin"></div>
       </div>
     )
   }
@@ -88,79 +89,180 @@ export default function DashboardPage() {
   const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   const statCards = [
-    { label: "Ingresos", value: stats.totalIngresos, icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
-    { label: "Gastos", value: stats.totalGastos, icon: TrendingDown, color: "text-danger", bg: "bg-danger/10" },
-    { label: "Balance", value: stats.balance, icon: Wallet, color: stats.balance >= 0 ? "text-primary" : "text-danger", bg: stats.balance >= 0 ? "bg-primary/10" : "bg-danger/10" },
-    { label: "Metas", value: stats.metasCompletadas, icon: Target, color: "text-warning", bg: "bg-warning/10", extra: `${stats.totalMetas} total` },
+    { 
+      label: "Ingresos", 
+      value: stats.totalIngresos, 
+      icon: TrendingUp, 
+      color: "text-success", 
+      bg: "bg-success/10",
+      iconBg: "bg-success/20",
+      href: "/dashboard/transacciones?tipo=ingreso"
+    },
+    { 
+      label: "Gastos", 
+      value: stats.totalGastos, 
+      icon: TrendingDown, 
+      color: "text-danger", 
+      bg: "bg-danger/10",
+      iconBg: "bg-danger/20",
+      href: "/dashboard/transacciones?tipo=gasto"
+    },
+    { 
+      label: "Balance", 
+      value: stats.balance, 
+      icon: Wallet, 
+      color: stats.balance >= 0 ? "text-wealth" : "text-danger", 
+      bg: stats.balance >= 0 ? "bg-wealth/10" : "bg-danger/10",
+      iconBg: stats.balance >= 0 ? "bg-wealth/20" : "bg-danger/20",
+      href: "/dashboard/transacciones"
+    },
+    { 
+      label: "Metas", 
+      value: stats.metasCompletadas, 
+      icon: Target, 
+      color: "text-warning", 
+      bg: "bg-warning/10",
+      iconBg: "bg-warning/20",
+      extra: `${stats.totalMetas} total`,
+      href: "/dashboard/metas"
+    },
   ]
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">
-          Hola, {session?.user?.name?.split(" ")[0]}
-        </h1>
-        <p className="text-muted-foreground">
-          Resumen de {getMonthName(mes)} {anio}
-        </p>
+    <div className="stagger">
+      {/* Page Header */}
+      <div className="page-header animate-slide-up">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="page-title">
+              Hola, {session?.user?.name?.split(" ")[0]}
+            </h1>
+            <p className="text-ink-muted mt-1">
+              Resumen de {getMonthName(mes)} {anio}
+            </p>
+          </div>
+          <Link
+            href="/dashboard/transacciones"
+            className="btn btn-primary inline-flex items-center gap-2"
+          >
+            Nueva transacción
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="ledger-rule ledger-rule--animated ledger-rule--short" />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statCards.map((card) => (
-          <div key={card.label} className="bg-card rounded-xl p-5 border border-border shadow-sm">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        {statCards.map((card, index) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className={`card card--interactive p-5 group ${card.bg} ${card.iconBg} animate-slide-up`}
+            style={{ animationDelay: `${100 + index * 50}ms` }}
+          >
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 ${card.bg} rounded-lg flex items-center justify-center`}>
-                <card.icon className={`w-5 h-5 ${card.color}`} />
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.iconBg} group-hover:scale-105 transition-transform`}>
+                <card.icon className={`w-5 h-5 ${card.color}`} aria-hidden="true" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{card.label}</p>
-                <p className={`text-lg font-bold ${card.color}`}>
+              <div className="min-w-0">
+                <p className="text-sm text-ink-muted truncate">{card.label}</p>
+                <p className={`text-xl font-mono-nums font-medium ${card.color} truncate`}>
                   {typeof card.value === "number" ? fmt(card.value) : card.value}
                 </p>
                 {card.extra && (
-                  <p className="text-xs text-muted-foreground">{card.extra}</p>
+                  <p className="text-xs text-ink-muted">{card.extra}</p>
                 )}
               </div>
             </div>
-          </div>
+            <ArrowRight className="ml-auto w-5 h-5 text-ink-muted group-hover:text-wealth transition-colors" aria-hidden="true" />
+          </Link>
         ))}
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-card rounded-xl border border-border shadow-sm">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-semibold text-card-foreground">Últimas Transacciones</h2>
+      <section className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-medium text-ink">Últimas Transacciones</h2>
+          <Link
+            href="/dashboard/transacciones"
+            className="text-sm text-wealth hover:text-wealth-light font-medium inline-flex items-center gap-1"
+          >
+            Ver todas
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
-        {recentTransactions.length === 0 ? (
-          <div className="px-6 py-12 text-center text-muted-foreground">
-            <p>No hay transacciones este mes</p>
-            <p className="text-sm mt-1">¡Empieza registrando tu primer ingreso o gasto!</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border/50">
-            {recentTransactions.map((t) => (
-              <div key={t.id} className="flex items-center justify-between px-6 py-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: t.categorias?.color || "#94a3b8" }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground">
-                      {t.descripcion || t.categorias?.nombre || "Sin descripción"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{t.categorias?.nombre}</p>
+
+        <div className="card overflow-hidden">
+          {recentTransactions.length === 0 ? (
+            <div className="empty-state py-12">
+              <svg className="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 4v16m8-8H4" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+              <p className="empty-state-title">No hay transacciones este mes</p>
+              <p className="empty-state-text">Empieza registrando tu primer ingreso o gasto</p>
+              <Link
+                href="/dashboard/transacciones"
+                className="btn btn-primary mt-4"
+              >
+                Agregar transacción
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {recentTransactions.map((t) => (
+                <div key={t.id} className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: t.categorias?.color || "#8B7D6B" }}
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink truncate">
+                        {t.descripcion || t.categorias?.nombre || "Sin descripción"}
+                      </p>
+                      <p className="text-xs text-ink-muted truncate">
+                        {t.categorias?.nombre} · {new Date(t.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+                      </p>
+                    </div>
                   </div>
+                  <p className={`text-sm font-mono-nums font-semibold ${t.tipo === "ingreso" ? "text-success" : "text-danger"}`}>
+                    {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
+                  </p>
                 </div>
-                <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-success" : "text-danger"}`}>
-                  {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="mt-8 animate-slide-up" style={{ animationDelay: '300ms' }}>
+        <h2 className="font-display text-xl font-medium text-ink mb-4">Accesos rápidos</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link href="/dashboard/transacciones" className="card card--interactive p-4 text-center">
+            <CreditCard className="w-6 h-6 text-wealth mx-auto mb-2" />
+            <p className="text-sm font-medium text-ink">Transacciones</p>
+          </Link>
+          <Link href="/dashboard/pagos-fijos" className="card card--interactive p-4 text-center">
+            <CalendarDays className="w-6 h-6 text-terracotta mx-auto mb-2" />
+            <p className="text-sm font-medium text-ink">Pagos Fijos</p>
+          </Link>
+          <Link href="/dashboard/metas" className="card card--interactive p-4 text-center">
+            <Target className="w-6 h-6 text-warning mx-auto mb-2" />
+            <p className="text-sm font-medium text-ink">Metas</p>
+          </Link>
+          <Link href="/dashboard/reportes" className="card card--interactive p-4 text-center">
+            <BarChart3 className="w-6 h-6 text-ink-muted mx-auto mb-2" />
+            <p className="text-sm font-medium text-ink">Reportes</p>
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }
+
+// Icons needed
+import { CreditCard, CalendarDays, BarChart3 } from "lucide-react"
