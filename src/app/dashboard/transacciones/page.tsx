@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
-import { formatCurrency, formatDate, getCurrentMonth } from "@/lib/utils"
+import { formatCurrency, formatDate, getCurrentMonth, getDaysInMonth } from "@/lib/utils"
 import { useUserPreferences } from "@/hooks/useUserPreferences"
-import { Plus, Pencil, Trash2, X, Filter } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Filter, Calendar, CheckCircle } from "lucide-react"
 
 interface Categoria {
   id: string
@@ -21,11 +21,26 @@ interface Transaccion {
   tipo: string
   categoria_id: string
   categorias: Categoria | null
+  esFijo?: boolean
+  pagoFijoId?: string
+}
+
+interface PagoFijo {
+  id: string
+  nombre: string
+  descripcion: string | null
+  monto: number
+  tipo: string
+  dia_cobro: number
+  activo: boolean
+  categoria_id: string | null
+  categorias: Categoria | null
 }
 
 export default function TransaccionesPage() {
   const { preferences } = useUserPreferences()
   const [transacciones, setTransacciones] = useState<Transaccion[]>([])
+  const [pagosFijos, setPagosFijos] = useState<PagoFijo[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -33,6 +48,7 @@ export default function TransaccionesPage() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos")
   const [filtroMes, setFiltroMes] = useState(getCurrentMonth().mes)
   const [filtroAnio, setFiltroAnio] = useState(getCurrentMonth().anio)
+  const [mostrarFijos, setMostrarFijos] = useState(true)
 
   // Form state
   const [tipo, setTipo] = useState("gasto")
@@ -60,6 +76,16 @@ export default function TransaccionesPage() {
 
     setCategorias(cats || [])
 
+    // Pagos fijos activos
+    const { data: fijos } = await supabase
+      .from("pagos_fijos")
+      .select("*, categorias(id, nombre, tipo, color)")
+      .eq("usuario_id", user.id)
+      .eq("activo", true)
+      .order("dia_cobro")
+
+    setPagosFijos((fijos as PagoFijo[]) || [])
+
     const startDate = `${filtroAnio}-${String(filtroMes).padStart(2, "0")}-01`
     const endDate = `${filtroAnio}-${String(filtroMes + 1 > 12 ? 1 : filtroMes + 1).padStart(2, "0")}-01`
 
@@ -77,9 +103,39 @@ export default function TransaccionesPage() {
 
   const categoriasFiltradas = categorias.filter((c) => c.tipo === tipo)
 
+  // Combinar transacciones reales + pagos fijos del mes
+  const getTransaccionesConFijos = () => {
+    let resultado = [...transacciones]
+
+    if (mostrarFijos) {
+      const diasEnMes = getDaysInMonth(filtroMes, filtroAnio)
+      const fijosDelMes = pagosFijos.filter(p => p.dia_cobro <= diasEnMes)
+
+      const fijosComoTransacciones: Transaccion[] = fijosDelMes.map((p) => ({
+        id: `fijo-${p.id}`,
+        monto: Number(p.monto),
+        descripcion: p.nombre + (p.descripcion ? ` - ${p.descripcion}` : ""),
+        fecha: `${filtroAnio}-${String(filtroMes).padStart(2, "0")}-${String(p.dia_cobro).padStart(2, "0")}`,
+        tipo: p.tipo,
+        categoria_id: p.categoria_id || "",
+        categorias: p.categorias,
+        esFijo: true,
+        pagoFijoId: p.id,
+      }))
+
+      resultado = [...resultado, ...fijosComoTransacciones].sort((a, b) =>
+        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+      )
+    }
+
+    return resultado
+  }
+
+  const todasTransacciones = getTransaccionesConFijos()
+
   const filteredTransacciones = filtroTipo === "todos"
-    ? transacciones
-    : transacciones.filter((t) => t.tipo === filtroTipo)
+    ? todasTransacciones
+    : todasTransacciones.filter((t) => t.tipo === filtroTipo)
 
   const totalIngresos = filteredTransacciones.filter((t) => t.tipo === "ingreso").reduce((s, t) => s + Number(t.monto), 0)
   const totalGastos = filteredTransacciones.filter((t) => t.tipo === "gasto").reduce((s, t) => s + Number(t.monto), 0)
@@ -119,7 +175,12 @@ export default function TransaccionesPage() {
     }
 
     if (editando) {
-      await supabase.from("transacciones").update(data).eq("id", editando.id)
+      if (editando.esFijo) {
+        // Si es un pago fijo, crear transacción real y opcionalmente desactivar el fijo
+        await supabase.from("transacciones").insert(data)
+      } else {
+        await supabase.from("transacciones").update(data).eq("id", editando.id)
+      }
     } else {
       await supabase.from("transacciones").insert(data)
     }
@@ -131,7 +192,34 @@ export default function TransaccionesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar esta transacción?")) return
     const supabase = createClient()
+    
+    if (id.startsWith("fijo-")) {
+      // No se puede eliminar un pago fijo desde aquí, solo desactivar
+      alert("Los pagos fijos se gestionan en la sección 'Pagos Fijos'")
+      return
+    }
+    
     await supabase.from("transacciones").delete().eq("id", id)
+    fetchData()
+  }
+
+  const confirmarFijo = async (pagoFijoId: string, fecha: string) => {
+    const pago = pagosFijos.find(p => p.id === pagoFijoId)
+    if (!pago) return
+
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from("transacciones").insert({
+      usuario_id: user.id,
+      tipo: pago.tipo,
+      monto: Number(pago.monto),
+      descripcion: pago.nombre + (pago.descripcion ? ` - ${pago.descripcion}` : ""),
+      categoria_id: pago.categoria_id,
+      fecha,
+    })
+
     fetchData()
   }
 
@@ -202,6 +290,17 @@ export default function TransaccionesPage() {
             </button>
           ))}
         </div>
+        {/* Toggle pagos fijos */}
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={mostrarFijos}
+            onChange={(e) => setMostrarFijos(e.target.checked)}
+            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+          />
+          <Calendar className="w-4 h-4" />
+          Mostrar pagos fijos
+        </label>
       </div>
 
       {/* Summary */}
@@ -231,11 +330,19 @@ export default function TransaccionesPage() {
         ) : (
           <div className="divide-y divide-gray-50">
             {filteredTransacciones.map((t) => (
-              <div key={t.id} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50">
+              <div
+                key={t.id}
+                className={`flex items-center justify-between px-6 py-3 hover:bg-gray-50 ${t.esFijo ? "bg-indigo-50/50" : ""}`}
+              >
                 <div className="flex items-center gap-3">
+                  {t.esFijo && (
+                    <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                      FIJO
+                    </span>
+                  )}
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: t.categorias?.color || "#94a3b8" }}
+                    style={{ backgroundColor: t.categorias?.color || (t.tipo === "ingreso" ? "#10b981" : "#ef4444") }}
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -246,16 +353,28 @@ export default function TransaccionesPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
                     {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
                   </p>
-                  <button onClick={() => openModal(t)} className="text-gray-400 hover:text-indigo-600">
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {t.esFijo ? (
+                    <button
+                      onClick={() => confirmarFijo(t.pagoFijoId!, t.fecha)}
+                      className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                    >
+                      <CheckCircle className="w-3 h-3" />
+                      Confirmar
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={() => openModal(t)} className="text-gray-400 hover:text-indigo-600">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

@@ -15,12 +15,14 @@ import {
   Menu,
   X,
   Settings,
+  CalendarDays,
 } from "lucide-react"
 import SettingsModal from "@/components/settings-modal"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/transacciones", label: "Transacciones", icon: ArrowUpDown },
+  { href: "/dashboard/pagos-fijos", label: "Pagos Fijos", icon: CalendarDays },
   { href: "/dashboard/presupuestos", label: "Presupuestos", icon: PiggyBank },
   { href: "/dashboard/metas", label: "Metas de Ahorro", icon: Target },
   { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3 },

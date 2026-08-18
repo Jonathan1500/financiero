@@ -67,3 +67,7 @@ export function getMonthName(mes: number, locale = "es"): string {
   ]
   return months[mes - 1]
 }
+
+export function getDaysInMonth(mes: number, anio: number): number {
+  return new Date(anio, mes, 0).getDate()
+}
