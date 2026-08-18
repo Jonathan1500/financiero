@@ -4,10 +4,13 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import type { CurrencyCode } from "@/lib/utils"
 
+type Theme = "light" | "dark" | "system"
+
 interface UserPreferences {
   moneda: CurrencyCode
   idioma: string
   zona_horaria: string
+  tema: Theme
 }
 
 export function useUserPreferences() {
@@ -15,6 +18,7 @@ export function useUserPreferences() {
     moneda: "DOP",
     idioma: "es",
     zona_horaria: "America/Santo_Domingo",
+    tema: "system",
   })
   const [loading, setLoading] = useState(true)
 
@@ -29,7 +33,7 @@ export function useUserPreferences() {
 
     const { data } = await supabase
       .from("user_preferences")
-      .select("moneda, idioma, zona_horaria")
+      .select("moneda, idioma, zona_horaria, tema")
       .eq("usuario_id", user.id)
       .single()
 

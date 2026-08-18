@@ -7,6 +7,8 @@ import { formatCurrency, getCurrentMonth, getMonthName } from "@/lib/utils"
 import { useUserPreferences } from "@/hooks/useUserPreferences"
 import { TrendingUp, TrendingDown, Wallet, Target } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 interface Stats {
   totalIngresos: number
   totalGastos: number
@@ -78,7 +80,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -86,19 +88,19 @@ export default function DashboardPage() {
   const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
 
   const statCards = [
-    { label: "Ingresos", value: stats.totalIngresos, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Gastos", value: stats.totalGastos, icon: TrendingDown, color: "text-red-600", bg: "bg-red-50" },
-    { label: "Balance", value: stats.balance, icon: Wallet, color: stats.balance >= 0 ? "text-indigo-600" : "text-red-600", bg: stats.balance >= 0 ? "bg-indigo-50" : "bg-red-50" },
-    { label: "Metas", value: stats.metasCompletadas, icon: Target, color: "text-amber-600", bg: "bg-amber-50", extra: `${stats.totalMetas} total` },
+    { label: "Ingresos", value: stats.totalIngresos, icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
+    { label: "Gastos", value: stats.totalGastos, icon: TrendingDown, color: "text-danger", bg: "bg-danger/10" },
+    { label: "Balance", value: stats.balance, icon: Wallet, color: stats.balance >= 0 ? "text-primary" : "text-danger", bg: stats.balance >= 0 ? "bg-primary/10" : "bg-danger/10" },
+    { label: "Metas", value: stats.metasCompletadas, icon: Target, color: "text-warning", bg: "bg-warning/10", extra: `${stats.totalMetas} total` },
   ]
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-foreground">
           Hola, {session?.user?.name?.split(" ")[0]}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Resumen de {getMonthName(mes)} {anio}
         </p>
       </div>
@@ -106,18 +108,18 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((card) => (
-          <div key={card.label} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+          <div key={card.label} className="bg-card rounded-xl p-5 border border-border shadow-sm">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 ${card.bg} rounded-lg flex items-center justify-center`}>
                 <card.icon className={`w-5 h-5 ${card.color}`} />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{card.label}</p>
+                <p className="text-sm text-muted-foreground">{card.label}</p>
                 <p className={`text-lg font-bold ${card.color}`}>
                   {typeof card.value === "number" ? fmt(card.value) : card.value}
                 </p>
                 {card.extra && (
-                  <p className="text-xs text-gray-400">{card.extra}</p>
+                  <p className="text-xs text-muted-foreground">{card.extra}</p>
                 )}
               </div>
             </div>
@@ -126,17 +128,17 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Últimas Transacciones</h2>
+      <div className="bg-card rounded-xl border border-border shadow-sm">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="font-semibold text-card-foreground">Últimas Transacciones</h2>
         </div>
         {recentTransactions.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-400">
+          <div className="px-6 py-12 text-center text-muted-foreground">
             <p>No hay transacciones este mes</p>
             <p className="text-sm mt-1">¡Empieza registrando tu primer ingreso o gasto!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border/50">
             {recentTransactions.map((t) => (
               <div key={t.id} className="flex items-center justify-between px-6 py-3">
                 <div className="flex items-center gap-3">
@@ -145,13 +147,13 @@ export default function DashboardPage() {
                     style={{ backgroundColor: t.categorias?.color || "#94a3b8" }}
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-card-foreground">
                       {t.descripcion || t.categorias?.nombre || "Sin descripción"}
                     </p>
-                    <p className="text-xs text-gray-400">{t.categorias?.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{t.categorias?.nombre}</p>
                   </div>
                 </div>
-                <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
+                <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-success" : "text-danger"}`}>
                   {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
                 </p>
               </div>

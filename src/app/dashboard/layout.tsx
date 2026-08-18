@@ -19,6 +19,8 @@ import {
 } from "lucide-react"
 import SettingsModal from "@/components/settings-modal"
 
+export const dynamic = 'force-dynamic'
+
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/transacciones", label: "Transacciones", icon: ArrowUpDown },
@@ -46,20 +48,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
-            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-indigo-600" />
+          <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-lg font-bold text-gray-900">Finanzas</span>
+            <span className="text-lg font-bold text-card-foreground">Finanzas</span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="ml-auto lg:hidden text-gray-400 hover:text-gray-600"
+              className="ml-auto lg:hidden text-muted-foreground hover:text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
@@ -76,11 +78,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-card-foreground"
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? "text-indigo-600" : "text-gray-400"}`} />
+                  <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                   {item.label}
                 </Link>
               )
@@ -88,30 +90,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Settings in sidebar */}
             <button
               onClick={() => setSettingsOpen(true)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors w-full"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-card-foreground transition-colors w-full"
             >
-              <Settings className="w-5 h-5 text-gray-400" />
+              <Settings className="w-5 h-5 text-muted-foreground" />
               Configuración
             </button>
           </nav>
 
           {/* User */}
-          <div className="px-3 py-4 border-t border-gray-100">
+          <div className="px-3 py-4 border-t border-border">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold text-sm">
+              <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
                 {session?.user?.name?.[0]?.toUpperCase() || "U"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-card-foreground truncate">
                   {session?.user?.name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {session?.user?.email}
                 </p>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="text-gray-400 hover:text-red-500 transition-colors"
+                className="text-muted-foreground hover:text-danger transition-colors"
                 title="Cerrar sesión"
               >
                 <LogOut className="w-4 h-4" />
@@ -124,20 +126,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar mobile */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-muted-foreground hover:text-card-foreground"
           >
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-indigo-600" />
-            <span className="font-bold text-gray-900">Finanzas</span>
+            <DollarSign className="w-5 h-5 text-primary" />
+            <span className="font-bold text-card-foreground">Finanzas</span>
           </div>
           <button
             onClick={() => setSettingsOpen(true)}
-            className="text-gray-600 hover:text-gray-900 p-2"
+            className="text-muted-foreground hover:text-card-foreground p-2"
             title="Configuración"
           >
             <Settings className="w-5 h-5" />

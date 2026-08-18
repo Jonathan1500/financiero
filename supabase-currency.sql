@@ -1,5 +1,5 @@
 -- =============================================
--- AGREGAR CONFIGURACIÓN DE MONEDA
+-- AGREGAR CONFIGURACIÓN DE MONEDA + TEMA
 -- Ejecuta esto en SQL Editor de Supabase
 -- =============================================
 
@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   moneda TEXT NOT NULL DEFAULT 'DOP',
   idioma TEXT NOT NULL DEFAULT 'es',
   zona_horaria TEXT NOT NULL DEFAULT 'America/Santo_Domingo',
+  tema TEXT NOT NULL DEFAULT 'system' CHECK (tema IN ('light', 'dark', 'system')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -39,22 +40,35 @@ RETURNS TABLE (
   usuario_id UUID,
   moneda TEXT,
   idioma TEXT,
-  zona_horaria TEXT
+  zona_horaria TEXT,
+  tema TEXT
 ) AS $$
 BEGIN
   RETURN QUERY
-  INSERT INTO user_preferences (usuario_id, moneda, idioma, zona_horaria)
-  VALUES (auth.uid(), 'DOP', 'es', 'America/Santo_Domingo')
+  INSERT INTO user_preferences (usuario_id, moneda, idioma, zona_horaria, tema)
+  VALUES (auth.uid(), 'DOP', 'es', 'America/Santo_Domingo', 'system')
   ON CONFLICT (usuario_id) DO NOTHING
-  RETURNING usuario_id, moneda, idioma, zona_horaria;
+  RETURNING usuario_id, moneda, idioma, zona_horaria, tema;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Si la tabla ya existe, agregar columna tema
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'user_preferences' AND column_name = 'tema'
+  ) THEN
+    ALTER TABLE user_preferences ADD COLUMN tema TEXT NOT NULL DEFAULT 'system' CHECK (tema IN ('light', 'dark', 'system'));
+  END IF;
+END $$;
 
 -- Monedas soportadas (para referencia)
 /*
   Código | Nombre                    | Símbolo | Locale
   -------|---------------------------|---------|--------
   DOP    | Peso Dominicano           | RD$     | es-DO
+  GTQ    | Quetzal Guatemalteco      | Q       | es-GT
   USD    | Dólar Estadounidense      | $       | en-US
   EUR    | Euro                      | €       | de-DE
   MXN    | Peso Mexicano             | $       | es-MX
