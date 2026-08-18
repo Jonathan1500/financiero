@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { DollarSign, Eye, EyeOff, Lock, User, Mail, CheckCircle } from "lucide-react"
+import { DollarSign, Eye, EyeOff, Lock, Mail, User, CheckCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase-browser"
 
 export default function RegisterPage() {
@@ -60,7 +60,7 @@ export default function RegisterPage() {
       { nombre: "Entretenimiento", tipo: "gasto", color: "#D97355", icono: "film" },
       { nombre: "Salud", tipo: "gasto", color: "#0F9D7A", icono: "heart" },
       { nombre: "Educación", tipo: "gasto", color: "#148F74", icono: "book-open" },
-      { nombre: "Servicios", tipo: "gasto", color: "#6B6359", icono: "wifi" },
+      { nombre: "Servicios", tipo: "gasto", color: "#7A746B", icono: "wifi" },
       { nombre: "Otros Gastos", tipo: "gasto", color: "#8B7D6B", icono: "more-horizontal" },
     ]
 
@@ -87,9 +87,9 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
-          <div className="card card--elevated p-8 text-center animate-scale-in">
-            <div className="w-16 h-16 bg-success/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-              <CheckCircle className="w-8 h-8 text-success" />
+          <div className="card card--elevated p-8 text-center stagger animate-scale-in">
+            <div className="w-16 h-16 bg-wealth/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-8 h-8 text-wealth" />
             </div>
             <h1 className="font-display text-2xl font-medium text-ink mb-2">¡Cuenta Creada!</h1>
             <p className="text-ink-muted">Redirigiendo al login…</p>
@@ -102,18 +102,18 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="card card--elevated p-8 animate-slide-up">
+        <div className="card card--elevated p-8 stagger animate-slide-up">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-wealth/10 rounded-2xl flex items-center justify-center mb-5">
-              <DollarSign className="w-8 h-8 text-wealth" />
-            </div>
-            <h1 className="font-display text-2xl font-medium text-ink">Crear Cuenta</h1>
-            <p className="text-ink-muted mt-1">Regístrate para empezar</p>
+            <Link href="/" className="flex items-center gap-2 mb-5" aria-label="Modern Ledger - Inicio">
+              <span className="font-display text-2xl font-medium text-ink">Modern Ledger</span>
+            </Link>
+            <h1 className="font-display text-2xl font-medium text-ink text-center">Crear tu cuenta</h1>
+            <p className="text-ink-muted mt-1 text-center">Empieza a organizar tus finanzas hoy</p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3 bg-danger/10 border border-danger/20 text-danger rounded-lg text-sm animate-slide-down" role="alert">
+            <div className="mb-6 p-4 bg-danger/10 border border-danger/20 text-danger rounded-xl text-sm animate-slide-down" role="alert">
               {error}
             </div>
           )}
@@ -207,7 +207,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-accent w-full py-3 mt-2"
+              className="btn btn-accent w-full py-3.5 mt-2"
             >
               {loading ? "Creando cuenta…" : "Crear Cuenta"}
             </button>
@@ -216,7 +216,7 @@ export default function RegisterPage() {
           <p className="mt-6 text-center text-sm text-ink-muted">
             ¿Ya tienes cuenta?{" "}
             <Link href="/login" className="text-wealth hover:text-wealth-light font-medium">
-              Inicia sesión
+              Iniciar sesión
             </Link>
           </p>
         </div>

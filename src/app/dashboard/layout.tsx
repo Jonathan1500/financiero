@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside
         id="sidebar"
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-surface border-r border-border transform transition-transform duration-300 ease-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
         aria-label="Navegación principal"
@@ -63,11 +63,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
-            <Link href="/dashboard" className="flex items-center gap-3" aria-label="Finanzas - Inicio">
+            <Link href="/dashboard" className="flex items-center gap-3" aria-label="Modern Ledger - Inicio">
               <div className="w-10 h-10 bg-wealth/10 rounded-xl flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-wealth" />
               </div>
-              <span className="font-display text-lg font-medium text-ink">Finanzas</span>
+              <span className="font-display text-lg font-medium text-ink">Modern Ledger</span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -142,7 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar mobile */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
           <button
             onClick={() => setSidebarOpen(true)}
             className="text-ink-muted hover:text-ink p-2 rounded-lg"
@@ -152,7 +152,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-wealth" />
-            <span className="font-display font-medium text-ink">Finanzas</span>
+            <span className="font-display font-medium text-ink">Modern Ledger</span>
           </div>
           <button
             onClick={() => setSettingsOpen(true)}

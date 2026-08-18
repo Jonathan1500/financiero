@@ -4,7 +4,7 @@ import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { DollarSign, Eye, EyeOff, Lock } from "lucide-react"
+import { DollarSign, Eye, EyeOff, Lock, Mail } from "lucide-react"
 
 function LoginForm() {
   const router = useRouter()
@@ -39,18 +39,18 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="card card--elevated p-8 animate-slide-up">
+        <div className="card card--elevated p-8 stagger animate-slide-up">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-wealth/10 rounded-2xl flex items-center justify-center mb-5">
-              <DollarSign className="w-8 h-8 text-wealth" />
-            </div>
-            <h1 className="font-display text-2xl font-medium text-ink">Finanzas Personales</h1>
-            <p className="text-ink-muted mt-1">Inicia sesión para continuar</p>
+            <Link href="/" className="flex items-center gap-2 mb-5" aria-label="Modern Ledger - Inicio">
+              <span className="font-display text-2xl font-medium text-ink">Modern Ledger</span>
+            </Link>
+            <h1 className="font-display text-2xl font-medium text-ink text-center">Bienvenido de vuelta</h1>
+            <p className="text-ink-muted mt-1 text-center">Inicia sesión para continuar</p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3 bg-danger/10 border border-danger/20 text-danger rounded-lg text-sm animate-slide-down" role="alert">
+            <div className="mb-6 p-4 bg-danger/10 border border-danger/20 text-danger rounded-xl text-sm animate-slide-down" role="alert">
               {error}
             </div>
           )}
@@ -60,10 +60,7 @@ function LoginForm() {
               <label htmlFor="email" className="label">Email</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                  </svg>
+                  <Mail className="w-5 h-5" />
                 </span>
                 <input
                   id="email"
@@ -111,7 +108,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-primary w-full py-3"
+              className="btn btn-primary w-full py-3.5"
             >
               {loading ? (
                 <>
@@ -130,7 +127,7 @@ function LoginForm() {
           <p className="mt-6 text-center text-sm text-ink-muted">
             ¿No tienes cuenta?{" "}
             <Link href="/register" className="text-wealth hover:text-wealth-light font-medium">
-              Regístrate
+              Crear cuenta
             </Link>
           </p>
         </div>
@@ -141,7 +138,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-wealth/20 border-t-wealth rounded-full animate-spin"></div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-wealth/20 border-t-wealth rounded-full animate-spin"></div></div>}>
       <LoginForm />
     </Suspense>
   )
