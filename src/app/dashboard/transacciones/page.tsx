@@ -5,7 +5,8 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, formatDate, getCurrentMonth, getDaysInMonth } from "@/lib/utils"
 import { useUserPreferences } from "@/hooks/useUserPreferences"
-import { Plus, Pencil, Trash2, X, Filter, Calendar, CheckCircle } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Filter, Calendar, CheckCircle, Download } from "lucide-react"
+import { generateTransactionsPDF } from "@/lib/generate-pdf"
 
 interface Categoria {
   id: string
@@ -224,6 +225,27 @@ export default function TransaccionesPage() {
     fetchData()
   }
 
+  const handleExportPDF = () => {
+    const data = filteredTransacciones.map((t) => ({
+      fecha: t.fecha,
+      descripcion: t.descripcion || t.categorias?.nombre || "Sin descripción",
+      categoria: t.categorias?.nombre || "—",
+      tipo: t.tipo,
+      monto: Number(t.monto),
+      esFijo: t.esFijo,
+    }))
+
+    generateTransactionsPDF({
+      transacciones: data,
+      mes: filtroMes,
+      anio: filtroAnio,
+      moneda: preferences.moneda,
+      totalIngresos,
+      totalGastos,
+      balance: totalIngresos - totalGastos,
+    })
+  }
+
   const months = [
     "Ene", "Feb", "Mar", "Abr", "May", "Jun",
     "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
@@ -244,13 +266,24 @@ export default function TransaccionesPage() {
           <h1 className="text-2xl font-bold text-ink">Transacciones</h1>
           <p className="text-ink-muted text-sm">Gestiona tus ingresos y gastos</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-wealth text-primary-foreground rounded-lg hover:bg-wealth-light transition-colors font-medium text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Nueva Transacción
-        </button>
+        <div className="flex items-center gap-2">
+          {filteredTransacciones.length > 0 && (
+            <button
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border text-ink rounded-lg hover:bg-muted transition-colors font-medium text-sm"
+            >
+              <Download className="w-4 h-4" />
+              Exportar PDF
+            </button>
+          )}
+          <button
+            onClick={() => openModal()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-wealth text-primary-foreground rounded-lg hover:bg-wealth-light transition-colors font-medium text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Transacción
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
