@@ -232,7 +232,7 @@ export default function TransaccionesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wealth"></div>
       </div>
     )
   }
@@ -241,12 +241,12 @@ export default function TransaccionesPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transacciones</h1>
-          <p className="text-gray-500 text-sm">Gestiona tus ingresos y gastos</p>
+          <h1 className="text-2xl font-bold text-ink">Transacciones</h1>
+          <p className="text-ink-muted text-sm">Gestiona tus ingresos y gastos</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
+          className="flex items-center gap-2 px-4 py-2.5 bg-wealth text-primary-foreground rounded-lg hover:bg-wealth-light transition-colors font-medium text-sm"
         >
           <Plus className="w-4 h-4" />
           Nueva Transacción
@@ -256,11 +256,11 @@ export default function TransaccionesPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
+          <Filter className="w-4 h-4 text-ink-muted" />
           <select
             value={filtroMes}
             onChange={(e) => setFiltroMes(Number(e.target.value))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+            className="text-sm border border-border rounded-lg px-3 py-2 bg-surface-elevated"
           >
             {months.map((m, i) => (
               <option key={i} value={i + 1}>{m}</option>
@@ -269,22 +269,22 @@ export default function TransaccionesPage() {
           <select
             value={filtroAnio}
             onChange={(e) => setFiltroAnio(Number(e.target.value))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+            className="text-sm border border-border rounded-lg px-3 py-2 bg-surface-elevated"
           >
             {[2024, 2025, 2026, 2027].map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
         </div>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex bg-surface rounded-lg p-1">
           {["todos", "ingreso", "gasto"].map((f) => (
             <button
               key={f}
               onClick={() => setFiltroTipo(f)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 filtroTipo === f
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-card-elevated text-ink shadow-sm"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               {f === "todos" ? "Todos" : f === "ingreso" ? "Ingresos" : "Gastos"}
@@ -292,12 +292,12 @@ export default function TransaccionesPage() {
           ))}
         </div>
         {/* Toggle pagos fijos */}
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
           <input
             type="checkbox"
             checked={mostrarFijos}
             onChange={(e) => setMostrarFijos(e.target.checked)}
-            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            className="w-4 h-4 text-wealth border-border-strong rounded focus:ring-wealth"
           />
           <Calendar className="w-4 h-4" />
           Mostrar pagos fijos
@@ -306,38 +306,38 @@ export default function TransaccionesPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{fmt(totalIngresos)}</p>
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Ingresos</p>
+          <p className="text-lg font-bold text-wealth">{fmt(totalIngresos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Gastos</p>
-          <p className="text-lg font-bold text-red-600">{fmt(totalGastos)}</p>
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Gastos</p>
+          <p className="text-lg font-bold text-danger">{fmt(totalGastos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Balance</p>
-          <p className={`text-lg font-bold ${totalIngresos - totalGastos >= 0 ? "text-indigo-600" : "text-red-600"}`}>
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Balance</p>
+          <p className={`text-lg font-bold ${totalIngresos - totalGastos >= 0 ? "text-wealth" : "text-danger"}`}>
             {fmt(totalIngresos - totalGastos)}
           </p>
         </div>
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         {filteredTransacciones.length === 0 ? (
-          <div className="py-12 text-center text-gray-400">
+          <div className="py-12 text-center text-ink-muted">
             <p>No hay transacciones para este período</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border">
             {filteredTransacciones.map((t) => (
               <div
                 key={t.id}
-                className={`flex items-center justify-between px-6 py-3 hover:bg-gray-50 ${t.esFijo ? "bg-indigo-50/50" : ""}`}
+                className={`flex items-center justify-between px-6 py-3 hover:bg-muted ${t.esFijo ? "bg-wealth/5" : ""}`}
               >
                 <div className="flex items-center gap-3">
                   {t.esFijo && (
-                    <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                    <span className="px-2 py-0.5 text-xs bg-wealth/10 text-wealth rounded-full font-medium">
                       FIJO
                     </span>
                   )}
@@ -346,32 +346,32 @@ export default function TransaccionesPage() {
                     style={{ backgroundColor: t.categorias?.color || (t.tipo === "ingreso" ? "#10b981" : "#ef4444") }}
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-ink">
                       {t.descripcion || t.categorias?.nombre || "Sin descripción"}
                     </p>
-                    <p className="text-xs text-gray-400">
-                      {t.categorias?.nombre} · {formatDate(t.fecha)}
+                    <p className="text-xs text-ink-subtle">
+                       {t.categorias?.nombre} · {formatDate(t.fecha)}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-emerald-600" : "text-red-600"}`}>
+                  <p className={`text-sm font-semibold ${t.tipo === "ingreso" ? "text-wealth" : "text-danger"}`}>
                     {t.tipo === "ingreso" ? "+" : "-"}{fmt(Number(t.monto))}
                   </p>
                   {t.esFijo ? (
                     <button
                       onClick={() => confirmarFijo(t.pagoFijoId!, t.fecha)}
-                      className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                      className="px-3 py-1.5 text-xs bg-wealth text-primary-foreground rounded-lg hover:bg-wealth-light transition-colors flex items-center gap-1"
                     >
                       <CheckCircle className="w-3 h-3" />
                       Confirmar
                     </button>
                   ) : (
                     <>
-                      <button onClick={() => openModal(t)} className="text-gray-400 hover:text-indigo-600">
+                      <button onClick={() => openModal(t)} className="text-ink-subtle hover:text-wealth">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-600">
+                      <button onClick={() => handleDelete(t.id)} className="text-ink-subtle hover:text-danger">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </>
@@ -386,23 +386,23 @@ export default function TransaccionesPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="bg-card rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-ink">
                 {editando ? "Editar Transacción" : "Nueva Transacción"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowModal(false)} className="text-ink-muted hover:text-ink">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Tipo */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-surface rounded-lg p-1">
                 <button
                   type="button"
                   onClick={() => { setTipo("gasto"); setCategoriaId("") }}
                   className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                    tipo === "gasto" ? "bg-red-500 text-white" : "text-gray-500"
+                    tipo === "gasto" ? "bg-danger text-destructive-foreground" : "text-ink-muted"
                   }`}
                 >
                   Gasto
@@ -411,7 +411,7 @@ export default function TransaccionesPage() {
                   type="button"
                   onClick={() => { setTipo("ingreso"); setCategoriaId("") }}
                   className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                    tipo === "ingreso" ? "bg-emerald-500 text-white" : "text-gray-500"
+                    tipo === "ingreso" ? "bg-wealth text-primary-foreground" : "text-ink-muted"
                   }`}
                 >
                   Ingreso
@@ -419,7 +419,7 @@ export default function TransaccionesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                <label className="block text-sm font-medium text-ink mb-1">Monto</label>
                 <input
                   type="number"
                   step="0.01"
@@ -427,17 +427,17 @@ export default function TransaccionesPage() {
                   value={monto}
                   onChange={(e) => setMonto(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none"
                   placeholder="0.00"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-ink mb-1">Categoría</label>
                 <select
                   value={categoriaId}
                   onChange={(e) => setCategoriaId(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none bg-surface-elevated"
                 >
                   <option value="">Sin categoría</option>
                   {categoriasFiltradas.map((c) => (
@@ -447,30 +447,30 @@ export default function TransaccionesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-ink mb-1">Descripción</label>
                 <input
                   type="text"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none"
                   placeholder="Ej: Compra en supermercado"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                <label className="block text-sm font-medium text-ink mb-1">Fecha</label>
                 <input
                   type="date"
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                className="w-full py-3 bg-wealth hover:bg-wealth-light text-primary-foreground font-medium rounded-lg transition-colors"
               >
                 {editando ? "Guardar Cambios" : "Agregar Transacción"}
               </button>

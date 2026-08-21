@@ -143,7 +143,7 @@ export default function PresupuestosPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wealth"></div>
       </div>
     )
   }
@@ -152,12 +152,12 @@ export default function PresupuestosPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Presupuestos</h1>
-          <p className="text-gray-500 text-sm">{getMonthName(mes)} {anio} — Controla tus gastos por categoría</p>
+          <h1 className="text-2xl font-bold text-ink">Presupuestos</h1>
+          <p className="text-ink-muted text-sm">{getMonthName(mes)} {anio} — Controla tus gastos por categoría</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
+          className="flex items-center gap-2 px-4 py-2.5 bg-wealth text-primary-foreground rounded-lg hover:bg-wealth-light transition-colors font-medium text-sm"
         >
           <Plus className="w-4 h-4" />
           Nuevo Presupuesto
@@ -165,9 +165,9 @@ export default function PresupuestosPage() {
       </div>
 
       {presupuestos.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
-          <p className="text-gray-400 mb-2">No hay presupuestos este mes</p>
-          <p className="text-sm text-gray-400">Crea un presupuesto para controlar tus gastos</p>
+        <div className="bg-card rounded-xl border border-border py-16 text-center">
+          <p className="text-ink-muted mb-2">No hay presupuestos este mes</p>
+          <p className="text-sm text-ink-muted">Crea un presupuesto para controlar tus gastos</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,45 +178,45 @@ export default function PresupuestosPage() {
             const excedido = gasto > limite
 
             return (
-              <div key={p.id} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+              <div key={p.id} className="bg-card rounded-xl border border-border p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: p.categorias?.color || "#94a3b8" }}
                     />
-                    <span className="font-medium text-gray-900">{p.categorias?.nombre}</span>
+                    <span className="font-medium text-ink">{p.categorias?.nombre}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {excedido && (
                       <AlertTriangle className="w-4 h-4 text-amber-500" />
                     )}
-                    <button onClick={() => openModal(p)} className="text-gray-400 hover:text-indigo-600">
+                    <button onClick={() => openModal(p)} className="text-ink-subtle hover:text-wealth">
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(p.id)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => handleDelete(p.id)} className="text-ink-subtle hover:text-danger">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500">Gastado</span>
-                  <span className={`font-semibold ${excedido ? "text-red-600" : "text-gray-900"}`}>
+                  <span className="text-ink-muted">Gastado</span>
+                  <span className={`font-semibold ${excedido ? "text-danger" : "text-ink"}`}>
                     {fmt(gasto)} / {fmt(limite)}
                   </span>
                 </div>
 
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
-                      excedido ? "bg-red-500" : porcentaje > 80 ? "bg-amber-500" : "bg-emerald-500"
+                      excedido ? "bg-danger" : porcentaje > 80 ? "bg-amber" : "bg-wealth"
                     }`}
                     style={{ width: `${porcentaje}%` }}
                   />
                 </div>
 
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-ink-subtle mt-2">
                   {porcentaje.toFixed(0)}% utilizado · {fmt(limite - gasto)} restante
                 </p>
               </div>
@@ -228,23 +228,23 @@ export default function PresupuestosPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="bg-card rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-ink">
                 {editando ? "Editar Presupuesto" : "Nuevo Presupuesto"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowModal(false)} className="text-ink-muted hover:text-ink">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-ink mb-1">Categoría</label>
                 <select
                   value={categoriaId}
                   onChange={(e) => setCategoriaId(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none bg-surface-elevated"
                 >
                   <option value="">Seleccionar categoría</option>
                   {categorias.map((c) => (
@@ -254,7 +254,7 @@ export default function PresupuestosPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Límite mensual</label>
+                <label className="block text-sm font-medium text-ink mb-1">Límite mensual</label>
                 <input
                   type="number"
                   step="0.01"
@@ -262,14 +262,14 @@ export default function PresupuestosPage() {
                   value={montoLimite}
                   onChange={(e) => setMontoLimite(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-border-strong rounded-lg focus:ring-2 focus:ring-wealth focus:border-transparent outline-none"
                   placeholder="0.00"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                className="w-full py-3 bg-wealth hover:bg-wealth-light text-primary-foreground font-medium rounded-lg transition-colors"
               >
                 {editando ? "Guardar Cambios" : "Crear Presupuesto"}
               </button>

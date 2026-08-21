@@ -136,7 +136,7 @@ export default function ReportesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wealth"></div>
       </div>
     )
   }
@@ -145,13 +145,13 @@ export default function ReportesPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reportes</h1>
-          <p className="text-gray-500 text-sm">Análisis de tus finanzas en {anioSeleccionado}</p>
+          <h1 className="text-2xl font-bold text-ink">Reportes</h1>
+          <p className="text-ink-muted text-sm">Análisis de tus finanzas en {anioSeleccionado}</p>
         </div>
         <select
           value={anioSeleccionado}
           onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+          className="text-sm border border-border rounded-lg px-3 py-2 bg-surface-elevated"
         >
           {[2024, 2025, 2026, 2027].map((y) => (
             <option key={y} value={y}>{y}</option>
@@ -161,28 +161,28 @@ export default function ReportesPage() {
 
       {/* Resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Total Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{fmt(resumen.totalIngresos)}</p>
+        <div className="bg-card rounded-xl p-5 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Total Ingresos</p>
+          <p className="text-lg font-bold text-wealth">{fmt(resumen.totalIngresos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Total Gastos</p>
-          <p className="text-lg font-bold text-red-600">{fmt(resumen.totalGastos)}</p>
+        <div className="bg-card rounded-xl p-5 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Total Gastos</p>
+          <p className="text-lg font-bold text-danger">{fmt(resumen.totalGastos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Promedio Ingresos</p>
-          <p className="text-lg font-bold text-emerald-600">{fmt(resumen.promedioIngresos)}</p>
+        <div className="bg-card rounded-xl p-5 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Promedio Ingresos</p>
+          <p className="text-lg font-bold text-wealth">{fmt(resumen.promedioIngresos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Promedio Gastos</p>
-          <p className="text-lg font-bold text-red-600">{fmt(resumen.promedioGastos)}</p>
+        <div className="bg-card rounded-xl p-5 border border-border">
+          <p className="text-xs text-ink-muted mb-1">Promedio Gastos</p>
+          <p className="text-lg font-bold text-danger">{fmt(resumen.promedioGastos)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Gráfica de barras - Ingresos vs Gastos */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-4">Ingresos vs Gastos Mensuales</h2>
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <h2 className="font-semibold text-ink mb-4">Ingresos vs Gastos Mensuales</h2>
           {monthlyData.some((m) => m.ingresos > 0 || m.gastos > 0) ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
@@ -196,15 +196,15 @@ export default function ReportesPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
+            <div className="h-[300px] flex items-center justify-center text-ink-muted">
               Sin datos para este año
             </div>
           )}
         </div>
 
         {/* Gráfica de pastel - Gastos por categoría */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-4">Gastos por Categoría</h2>
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <h2 className="font-semibold text-ink mb-4">Gastos por Categoría</h2>
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -227,7 +227,7 @@ export default function ReportesPage() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
+            <div className="h-[300px] flex items-center justify-center text-ink-muted">
               Sin datos de gastos
             </div>
           )}
@@ -236,8 +236,8 @@ export default function ReportesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tabla de gastos por categoría */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-4">Detalle Gastos por Categoría</h2>
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <h2 className="font-semibold text-ink mb-4">Detalle Gastos por Categoría</h2>
           {categoryData.length > 0 ? (
             <div className="space-y-3">
               {categoryData.map((cat, i) => {
@@ -247,11 +247,11 @@ export default function ReportesPage() {
                     <div className="flex justify-between text-sm mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
-                        <span className="text-gray-700">{cat.nombre}</span>
+                        <span className="text-ink">{cat.nombre}</span>
                       </div>
-                      <span className="font-medium text-gray-900">{fmt(cat.total)}</span>
+                      <span className="font-medium text-ink">{fmt(cat.total)}</span>
                     </div>
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${porcentaje}%`, backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
                     </div>
                   </div>
@@ -259,13 +259,13 @@ export default function ReportesPage() {
               })}
             </div>
           ) : (
-            <p className="text-gray-400 text-center py-8">Sin datos</p>
+            <p className="text-ink-muted text-center py-8">Sin datos</p>
           )}
         </div>
 
         {/* Detalle ingresos por categoría */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-4">Detalle Ingresos por Categoría</h2>
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <h2 className="font-semibold text-ink mb-4">Detalle Ingresos por Categoría</h2>
           {ingresosMensuales.length > 0 ? (
             <div className="space-y-3">
               {ingresosMensuales.map((cat, i) => {
@@ -275,11 +275,11 @@ export default function ReportesPage() {
                     <div className="flex justify-between text-sm mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
-                        <span className="text-gray-700">{cat.nombre}</span>
+                        <span className="text-ink">{cat.nombre}</span>
                       </div>
-                      <span className="font-medium text-gray-900">{fmt(cat.total)}</span>
+                      <span className="font-medium text-ink">{fmt(cat.total)}</span>
                     </div>
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${porcentaje}%`, backgroundColor: cat.color || COLORS[i % COLORS.length] }} />
                     </div>
                   </div>
@@ -287,7 +287,7 @@ export default function ReportesPage() {
               })}
             </div>
           ) : (
-            <p className="text-gray-400 text-center py-8">Sin datos</p>
+            <p className="text-ink-muted text-center py-8">Sin datos</p>
           )}
         </div>
       </div>
