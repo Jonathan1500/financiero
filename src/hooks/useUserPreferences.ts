@@ -15,9 +15,9 @@ interface UserPreferences {
 
 export function useUserPreferences() {
   const [preferences, setPreferences] = useState<UserPreferences>({
-    moneda: "DOP",
+    moneda: "GTQ",
     idioma: "es",
-    zona_horaria: "America/Santo_Domingo",
+    zona_horaria: "America/Guatemala",
     tema: "system",
   })
   const [loading, setLoading] = useState(true)

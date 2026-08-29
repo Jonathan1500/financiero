@@ -16,6 +16,8 @@ import {
   Settings,
   CalendarDays,
   ChevronRight,
+  Calendar,
+  FileText,
 } from "lucide-react"
 import SettingsModal from "@/components/settings-modal"
 
@@ -25,6 +27,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/transacciones", label: "Transacciones", icon: CreditCard },
   { href: "/dashboard/pagos-fijos", label: "Pagos Fijos", icon: CalendarDays },
+  { href: "/dashboard/calendario", label: "Calendario", icon: Calendar },
+  { href: "/dashboard/facturas", label: "Facturas", icon: FileText },
   { href: "/dashboard/presupuestos", label: "Presupuestos", icon: Target },
   { href: "/dashboard/metas", label: "Metas", icon: Target },
   { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3 },

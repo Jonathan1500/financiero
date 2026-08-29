@@ -5,7 +5,10 @@ import { useSession } from "next-auth/react"
 import { createClient } from "@/lib/supabase-browser"
 import { formatCurrency, getCurrentMonth, getMonthName } from "@/lib/utils"
 import { useUserPreferences } from "@/hooks/useUserPreferences"
-import { TrendingUp, TrendingDown, Wallet, Target, ArrowRight, ChevronRight, Clock } from "lucide-react"
+import {
+  TrendingUp, TrendingDown, Wallet, Target, ArrowRight, ChevronRight,
+  CreditCard, CalendarDays, BarChart3, FileText, Calendar, Clock
+} from "lucide-react"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
@@ -27,17 +30,24 @@ interface RecentTransaction {
   categorias: { nombre: string; color: string } | null
 }
 
+interface PagoFijo {
+  id: string
+  nombre: string
+  monto: number
+  tipo: string
+  dia_cobro: number
+  activo: boolean
+  categorias: { nombre: string; color: string } | null
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession()
   const { preferences } = useUserPreferences()
   const [stats, setStats] = useState<Stats>({ totalIngresos: 0, totalGastos: 0, balance: 0, totalMetas: 0, metasCompletadas: 0 })
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([])
+  const [pagosFijos, setPagosFijos] = useState<PagoFijo[]>([])
   const [loading, setLoading] = useState(true)
   const { mes, anio } = getCurrentMonth()
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   const fetchData = async () => {
     const supabase = createClient()
@@ -66,6 +76,15 @@ export default function DashboardPage() {
     const totalMetas = metas?.length || 0
     const metasCompletadas = metas?.filter((m) => Number(m.monto_actual) >= Number(m.monto_objetivo)).length || 0
 
+    const { data: fijos } = await supabase
+      .from("pagos_fijos")
+      .select("*, categorias(nombre, color)")
+      .eq("usuario_id", user.id)
+      .eq("activo", true)
+      .order("dia_cobro")
+
+    setPagosFijos((fijos as PagoFijo[]) || [])
+
     setStats({
       totalIngresos: ingresos,
       totalGastos: gastos,
@@ -78,6 +97,10 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -89,9 +112,20 @@ export default function DashboardPage() {
   const fmt = (amount: number) => formatCurrency(amount, preferences.moneda)
   const balance = stats.balance
   const balancePct = stats.totalIngresos > 0 ? Math.min(100, Math.max(0, (balance / stats.totalIngresos) * 100 + 50)) : 50
-
-  // Determine pulse state
   const pulseState = balance > 0 ? "positive" : balance < 0 ? "negative" : "neutral"
+
+  // Ciclos de pago
+  const hoy = new Date()
+  const esMesActual = mes === hoy.getMonth() + 1 && anio === hoy.getFullYear()
+  const diaActual = hoy.getDate()
+
+  const ciclo15Ingresos = pagosFijos.filter(p => p.tipo === "ingreso" && p.dia_cobro <= 15).reduce((s, p) => s + Number(p.monto), 0)
+  const ciclo15Gastos = pagosFijos.filter(p => p.tipo === "gasto" && p.dia_cobro <= 15).reduce((s, p) => s + Number(p.monto), 0)
+  const ciclo30Ingresos = pagosFijos.filter(p => p.tipo === "ingreso" && p.dia_cobro > 15).reduce((s, p) => s + Number(p.monto), 0)
+  const ciclo30Gastos = pagosFijos.filter(p => p.tipo === "gasto" && p.dia_cobro > 15).reduce((s, p) => s + Number(p.monto), 0)
+
+  const ciclo15Completado = esMesActual && diaActual >= 15
+  const ciclo30Completado = esMesActual && diaActual >= 30
 
   const statCards = [
     { 
@@ -102,7 +136,6 @@ export default function DashboardPage() {
       bg: "bg-wealth/10",
       iconBg: "bg-wealth/20",
       href: "/dashboard/transacciones?tipo=ingreso",
-      trend: "+12%"
     },
     { 
       label: "Gastos", 
@@ -112,7 +145,6 @@ export default function DashboardPage() {
       bg: "bg-danger/10",
       iconBg: "bg-danger/20",
       href: "/dashboard/transacciones?tipo=gasto",
-      trend: "-5%"
     },
     { 
       label: "Balance", 
@@ -122,7 +154,6 @@ export default function DashboardPage() {
       bg: balance >= 0 ? "bg-wealth/10" : "bg-danger/10",
       iconBg: balance >= 0 ? "bg-wealth/20" : "bg-danger/20",
       href: "/dashboard/transacciones",
-      trend: balance >= 0 ? "+8%" : "-3%"
     },
     { 
       label: "Metas", 
@@ -133,7 +164,6 @@ export default function DashboardPage() {
       iconBg: "bg-amber/20",
       extra: `${stats.totalMetas} total`,
       href: "/dashboard/metas",
-      trend: stats.metasCompletadas > 0 ? "+2" : "—"
     },
   ]
 
@@ -161,12 +191,11 @@ export default function DashboardPage() {
         <div className="ledger-rule ledger-rule--animated ledger-rule--short" />
       </div>
 
-      {/* Wealth Pulse - Signature Element */}
+      {/* Wealth Pulse */}
       <section className="mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <div className="card card--elevated p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-6">
-              {/* Wealth Pulse Ring */}
               <div className={`wealth-pulse wealth-pulse--${pulseState} wealth-pulse--alive`} role="img" aria-label={`Wealth Pulse: Balance neto ${balance >= 0 ? "positivo" : "negativo"} ${fmt(Math.abs(balance))}`}>
                 <svg viewBox="0 0 160 160" className="w-full h-full">
                   <circle className="wealth-pulse__track" cx="80" cy="80" r="45" />
@@ -199,7 +228,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="flex flex-wrap items-center gap-4 lg:gap-8">
               <div className="flex items-center gap-3 p-4 bg-muted rounded-xl">
                 <div className="w-10 h-10 bg-wealth/10 rounded-xl flex items-center justify-center">
@@ -233,6 +261,99 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Ciclos de Pago */}
+      <section className="mb-8 animate-slide-up" style={{ animationDelay: '150ms' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-wealth" />
+          <h2 className="font-display text-xl font-medium text-ink">Ciclos de Pago</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Ciclo 15 */}
+          <div className="card card--elevated p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-wealth/10 rounded-xl flex items-center justify-center">
+                  <span className="text-wealth font-bold text-lg">15</span>
+                </div>
+                <div>
+                  <p className="font-medium text-ink">Día 15</p>
+                  <p className="text-xs text-ink-muted">Primer ciclo de pago</p>
+                </div>
+              </div>
+              {ciclo15Completado ? (
+                <span className="px-3 py-1 bg-wealth/10 text-wealth text-xs font-semibold rounded-full">Completado</span>
+              ) : (
+                <span className="px-3 py-1 bg-amber/10 text-amber text-xs font-semibold rounded-full">Próximo</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-ink-muted flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-wealth" /> Ingresos fijos
+                </span>
+                <span className="text-sm font-semibold text-wealth">{fmt(ciclo15Ingresos)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-ink-muted flex items-center gap-1.5">
+                  <TrendingDown className="w-3.5 h-3.5 text-danger" /> Gastos fijos
+                </span>
+                <span className="text-sm font-semibold text-danger">{fmt(ciclo15Gastos)}</span>
+              </div>
+              <div className="border-t border-border pt-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-ink">Te queda</span>
+                  <span className={`text-lg font-bold ${ciclo15Ingresos - ciclo15Gastos >= 0 ? "text-wealth" : "text-danger"}`}>
+                    {fmt(ciclo15Ingresos - ciclo15Gastos)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ciclo 30 */}
+          <div className="card card--elevated p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-terracotta/10 rounded-xl flex items-center justify-center">
+                  <span className="text-terracotta font-bold text-lg">30</span>
+                </div>
+                <div>
+                  <p className="font-medium text-ink">Día 30</p>
+                  <p className="text-xs text-ink-muted">Segundo ciclo de pago</p>
+                </div>
+              </div>
+              {ciclo30Completado ? (
+                <span className="px-3 py-1 bg-wealth/10 text-wealth text-xs font-semibold rounded-full">Completado</span>
+              ) : (
+                <span className="px-3 py-1 bg-amber/10 text-amber text-xs font-semibold rounded-full">Próximo</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-ink-muted flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-wealth" /> Ingresos fijos
+                </span>
+                <span className="text-sm font-semibold text-wealth">{fmt(ciclo30Ingresos)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-ink-muted flex items-center gap-1.5">
+                  <TrendingDown className="w-3.5 h-3.5 text-danger" /> Gastos fijos
+                </span>
+                <span className="text-sm font-semibold text-danger">{fmt(ciclo30Gastos)}</span>
+              </div>
+              <div className="border-t border-border pt-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-ink">Te queda</span>
+                  <span className={`text-lg font-bold ${ciclo30Ingresos - ciclo30Gastos >= 0 ? "text-wealth" : "text-danger"}`}>
+                    {fmt(ciclo30Ingresos - ciclo30Gastos)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-slide-up" style={{ animationDelay: '200ms' }}>
         {statCards.map((card, index) => (
@@ -251,7 +372,6 @@ export default function DashboardPage() {
                 <p className={`text-xl font-mono-nums font-medium ${card.color} truncate`}>
                   {typeof card.value === "number" ? fmt(card.value) : card.value}
                 </p>
-                <p className={`text-xs font-medium ${card.color}`}>{card.trend} vs mes anterior</p>
               </div>
             </div>
             <ChevronRight className="ml-auto w-5 h-5 text-ink-muted group-hover:text-wealth transition-colors" aria-hidden="true" />
@@ -275,7 +395,7 @@ export default function DashboardPage() {
         <div className="card overflow-hidden">
           {recentTransactions.length === 0 ? (
             <div className="empty-state py-12">
-              <svg className="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg className="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M12 4v16m8-8H4" />
                 <circle cx="12" cy="12" r="10" />
               </svg>
@@ -303,7 +423,7 @@ export default function DashboardPage() {
                         {t.descripcion || t.categorias?.nombre || "Sin descripción"}
                       </p>
                       <p className="text-xs text-ink-muted truncate">
-                        {t.categorias?.nombre} · {new Date(t.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+                        {t.categorias?.nombre} · {new Date(t.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "short" })}
                       </p>
                     </div>
                   </div>
@@ -320,7 +440,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <section className="mt-8 animate-slide-up" style={{ animationDelay: '400ms' }}>
         <h2 className="font-display text-xl font-medium text-ink mb-4">Accesos rápidos</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <Link href="/dashboard/transacciones" className="card card--interactive p-5 text-center group">
             <div className="w-12 h-12 bg-wealth/10 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
               <CreditCard className="w-6 h-6 text-wealth" />
@@ -335,12 +455,19 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-ink">Pagos Fijos</p>
             <p className="text-xs text-ink-muted mt-1">Recurrentes automáticos</p>
           </Link>
-          <Link href="/dashboard/metas" className="card card--interactive p-5 text-center group">
+          <Link href="/dashboard/calendario" className="card card--interactive p-5 text-center group">
             <div className="w-12 h-12 bg-amber/10 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
-              <Target className="w-6 h-6 text-amber" />
+              <Calendar className="w-6 h-6 text-amber" />
             </div>
-            <p className="text-sm font-medium text-ink">Metas</p>
-            <p className="text-xs text-ink-muted mt-1">Progreso visual</p>
+            <p className="text-sm font-medium text-ink">Calendario</p>
+            <p className="text-xs text-ink-muted mt-1">Vista visual de pagos</p>
+          </Link>
+          <Link href="/dashboard/facturas" className="card card--interactive p-5 text-center group">
+            <div className="w-12 h-12 bg-wealth/10 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
+              <FileText className="w-6 h-6 text-wealth" />
+            </div>
+            <p className="text-sm font-medium text-ink">Facturas</p>
+            <p className="text-xs text-ink-muted mt-1">Escanear y guardar</p>
           </Link>
           <Link href="/dashboard/reportes" className="card card--interactive p-5 text-center group">
             <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
@@ -354,6 +481,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-// Icons needed
-import { CreditCard, CalendarDays, BarChart3 } from "lucide-react"
